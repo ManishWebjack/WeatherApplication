@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Desktop_\\WeatherApp\\WeatherApplication\\WeatherApplication.csproj": {}
+    "C:\\Users\\Manis\\Desktop\\WeatherApplication\\WeatherApplication.csproj": {}
   },
   "projects": {
-    "D:\\Desktop_\\WeatherApp\\WeatherApplication\\WeatherApplication.csproj": {
+    "C:\\Users\\Manis\\Desktop\\WeatherApplication\\WeatherApplication.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Desktop_\\WeatherApp\\WeatherApplication\\WeatherApplication.csproj",
+        "projectUniqueName": "C:\\Users\\Manis\\Desktop\\WeatherApplication\\WeatherApplication.csproj",
         "projectName": "WeatherApplication",
-        "projectPath": "D:\\Desktop_\\WeatherApp\\WeatherApplication\\WeatherApplication.csproj",
+        "projectPath": "C:\\Users\\Manis\\Desktop\\WeatherApplication\\WeatherApplication.csproj",
         "packagesPath": "C:\\Users\\Manis\\.nuget\\packages\\",
-        "outputPath": "D:\\Desktop_\\WeatherApp\\WeatherApplication\\obj\\",
+        "outputPath": "C:\\Users\\Manis\\Desktop\\WeatherApplication\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Manis\\AppData\\Roaming\\NuGet\\NuGet.Config",

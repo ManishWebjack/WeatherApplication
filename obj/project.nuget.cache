@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "fIc10eid3fHMKBtVqxSlUgJATrrh/2ZKk0mgNEtFF/GPqSe4AyFiCDRjMbw2SRJbAkPjFtGqOTPutDMKgpL+vA==",
+  "dgSpecHash": "UVdV95ReXXozaOZ51NHpskXsVgJxlM5EpNYNZDpN3E33oUryWzuiLtwf/1pw4hqwUvTB5oO1pSg/zoa1FizZyA==",
   "success": true,
-  "projectFilePath": "D:\\Desktop_\\WeatherApp\\WeatherApplication\\WeatherApplication.csproj",
+  "projectFilePath": "C:\\Users\\Manis\\Desktop\\WeatherApplication\\WeatherApplication.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Manis\\.nuget\\packages\\automapper\\11.0.1\\automapper.11.0.1.nupkg.sha512",
     "C:\\Users\\Manis\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\11.0.0\\automapper.extensions.microsoft.dependencyinjection.11.0.0.nupkg.sha512",
