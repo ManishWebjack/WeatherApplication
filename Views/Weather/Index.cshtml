@@ -1,0 +1,103 @@
+﻿
+@model FormRequestModel
+@{
+    ViewData["Title"] = "Weather Application";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to Weather App</h1><hr /><br /><br />
+</div>
+<div>
+    <form asp-controller="Weather" asp-action="GetCurrentWeather" method="get" role="form">
+        @Html.LabelFor(model => model.ZipCode, "Zip Code", new { style = "width: 150px;" })
+        @Html.TextBoxFor(model => model.ZipCode, "^[0-9]{6}$", new { style = "width: 150px;" })
+        @Html.ValidationMessageFor(model => model.ZipCode, null, new { @class = "text-danger" })
+
+        <br />
+        @Html.LabelFor(model => model.UOM, "Unit", new { style = "width: 150px;" })
+        @Html.DropDownListFor(model => model.UOM, new List<SelectListItem> { new SelectListItem { Value = "1", Text = " °C " }, new SelectListItem { Value = "2", Text = " °F " } }, new { style = "width: 150px;" })
+        @Html.ValidationMessageFor(model => model.UOM, null, new { @class = "text-danger" })
+
+        <br />
+        @Html.LabelFor(model => model.RequestType, "Unit", new { style = "width: 150px;" })
+        @Html.DropDownListFor(model => model.RequestType, new List<SelectListItem> { new SelectListItem { Value = "1", Text = "Current" }, new SelectListItem { Value = "2", Text = "Daily" } }, new { style = "width: 150px;" })
+        @Html.ValidationMessageFor(model => model.RequestType, null, new { @class = "text-danger" })
+        <br />
+
+        <input type="submit" value="Todays Weather" class="btn btn-dark" />
+    </form>
+</div>
+
+@if (ViewBag.Result != null)
+{
+    if (string.IsNullOrEmpty(ViewBag.Result.ErrorMessage))
+    {
+        if (ViewBag.Result.RequestType == 2)
+
+        {
+            @foreach (var data in ViewBag.Result.daily)
+            {
+                <div>
+                    <br /><hr />
+                    <label>City :<b> @ViewBag.Result.CityName</b> <br /></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Date : <b> @data.Date</b></label>
+                    <ul>
+                        <li>
+                            Temp
+                            <ul>
+
+                                <li> Temp : @data.temp.day @ViewBag.Result.UOM</li>
+
+                                <li> Max Temp : @data.temp.max @ViewBag.Result.UOM</li>
+
+                                <li> Min Temp : @data.temp.min @ViewBag.Result.UOM</li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            Wind
+                            <ul>
+                                <li> Wind Speed : @data.wind_speed </li>
+
+                                <li> Min Temp : @data.wind_deg </li>
+
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            }
+        }
+        else
+        {
+            <div>
+                <br /><hr />
+                <label>City :<b> @ViewBag.Result.CityName</b> <br /></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Date : <b> @ViewBag.Result.Current.Date</b></label>
+                <ul>
+                    <li>
+                        Temp
+                        <ul>
+
+                            <li> Temp : @ViewBag.Result.Current.CurrTemp @ViewBag.Result.UOM</li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        Wind
+                        <ul>
+                            <li> Wind Speed : @ViewBag.Result.Current.wind_speed </li>
+
+                            <li> Min Temp : @ViewBag.Result.Current.wind_deg </li>
+
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        }
+    }
+    else
+    {
+        <div>
+            <br /><hr />
+                  <label class="border-danger text-danger"> @(ViewBag?.Result?.ErrorMessage ?? "Request retuens no data")</label>
+        </div>
+    }
+}
