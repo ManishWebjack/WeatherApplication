@@ -26,5 +26,6 @@ namespace WeatherApplication.Models
 
         [JsonProperty("cityname")]
         public string CityName { get; set; }
+        public string WindUOM { get; set; }
     }
 }

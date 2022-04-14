@@ -3,8 +3,10 @@
     public enum eUnit
     {
         Metric = 1,     // Celsius
-        imperial = 2        //Fahrenheit
+        Imperial = 2        //Fahrenheit
     }
+
+
 
     public enum eRequestType
     {

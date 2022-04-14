@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,27 +59,37 @@ namespace WeatherApplication.Helpers
         #endregion
 
         #region Methods
-
+        /// <summary>
+        /// The method is responsible for calling "RequestAPI" and on successful output, it modifies the response model and 
+        /// sets units information along with the date-time conversion from Unix time to representable format and returns to calling functions
+        /// </summary>
+        /// <param name="model">The request model contains all information like UOM, request Type, and ZipCode</param>
+        /// <returns></returns>
         public async Task<WeatherResponseViewModel> GetWeatherFromZip(FormRequestModel model)
         {
             try
             {
                 await RequestAPI(model);
+
+                //Sets Date property based on Dt (UnixTime)
+                if (WeatherResponse.daily != null && model.RequestType == (int)eRequestType.daily)
+                    foreach (var response in WeatherResponse.daily)
+                        response.Date = DateTimeOffset.FromUnixTimeSeconds(response.Dt).LocalDateTime;
+                else
+                    WeatherResponse.Current.Date = DateTimeOffset.FromUnixTimeSeconds(WeatherResponse.Current.Dt).LocalDateTime;
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                WeatherResponse.ErrorMessage = "Error in API response, Date not proper: ";
             }
             catch (Exception ex)
             {
                 WeatherResponse.ErrorMessage = "Error Calling API : " + ex.Message;
             }
 
-            //Sets Date property based on Dt (UnixTime)
-            if (WeatherResponse.daily != null)
-                foreach (var response in WeatherResponse.daily)
-                    response.Date = UnixTimeToDateTime(response.Dt);
-            else
-                WeatherResponse.Current.Date = UnixTimeToDateTime(WeatherResponse.Current.Dt);
-
             //Sets UOM property based on selected Unit
             WeatherResponse.UOM = (model.UOM == 0 ? 1 : (int)model.UOM) == 1 ? "°C" : "°F";
+            WeatherResponse.WindUOM = (model.UOM == 0 ? 1 : (int)model.UOM) == 1 ? "meter/sec" : "miles/hour";
             WeatherResponse.RequestType = model.RequestType;
 
             return WeatherResponse;
@@ -90,6 +99,13 @@ namespace WeatherApplication.Helpers
 
         #region Helper Methods
 
+        /// <summary>
+        /// The method deals with API calls based on request Type: 1 for Current and 2 for Daily(7 days); 
+        /// first, it uses Zip to get Lat, Lon information from the server then, using this information calls weather API.
+        /// </summary>
+        /// <param name="model">The request model contains all information like UOM, request Type, and ZipCode </param>
+        /// <param name="Country">By default, it is set to India</param>
+        /// <returns></returns>
         private async Task RequestAPI(FormRequestModel model, string Country = "IN")
         {
             LoactionModel locationData = new LoactionModel();
@@ -98,7 +114,7 @@ namespace WeatherApplication.Helpers
             using (HttpClient _client = new HttpClient())
             {
                 _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                //calling Location API : Fetch Lat/Lon from ZIP
+                //calling Location API : Fetch Lat/Lon from ZIP code
                 _client.BaseAddress = new Uri(_apiConfiguration.LocationBaseURL);
 
                 string locationParam = string.Format(LocationAPIParam, model.ZipCode, Country, _apiConfiguration.APIKey);
@@ -106,64 +122,48 @@ namespace WeatherApplication.Helpers
                 try
                 {
                     HttpResponseMessage response = await _client.GetAsync(locationParam);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var dataObjects = await response.Content.ReadAsStringAsync();
-                        var i = JObject.Parse(dataObjects)["coord"];
-                        locationData = JsonConvert.DeserializeObject<LoactionModel>(dataObjects);
-                    }
-                    else
-                    {
-                        Console.WriteLine("{0} ({1})", (int)response.StatusCode, response.ReasonPhrase);
-                    }
+                    response.EnsureSuccessStatusCode();
+
+                    var dataObjects = await response.Content.ReadAsStringAsync();
+                    locationData = JsonConvert.DeserializeObject<LoactionModel>(dataObjects);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("ERROR : ", ex.Message);
+                    return;
                 }
-
             }
-            //Call Weather API when City Lon/lat Information is present
-            if (locationData != null && !string.IsNullOrEmpty(locationData.name))
+
+            using (HttpClient _client = new HttpClient())
             {
-                using (HttpClient _client = new HttpClient())
+                _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                _client.BaseAddress = new Uri(_apiConfiguration.OneCallAPIBaseURL);
+
+                string oneCallParam = string.Format(OneCallAPIParam, locationData.lat, locationData.lon, GetExcludeList(model.RequestType), uom, _apiConfiguration.APIKey);
+
+                try
                 {
-                    _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    _client.BaseAddress = new Uri(_apiConfiguration.OneCallAPIBaseURL);
+                    HttpResponseMessage response = await _client.GetAsync(oneCallParam);
 
-                    string oneCallParam = string.Format(OneCallAPIParam, locationData.lat, locationData.lon, GetExcludeList(model.RequestType), uom, _apiConfiguration.APIKey);
+                    response.EnsureSuccessStatusCode();
+                    var dataObjects = await response.Content.ReadAsStringAsync();
 
-                    try
-                    {
-                        HttpResponseMessage response = await _client.GetAsync(oneCallParam);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var dataObjects = await response.Content.ReadAsStringAsync();
+                    if (model.RequestType == (int)eRequestType.current)
+                        dataObjects = dataObjects.Replace("temp", "CurrTemp");
 
-                            if (model.RequestType == (int)eRequestType.current)
-                                dataObjects = dataObjects.Replace("temp", "CurrTemp");
+                    var data = JsonConvert.DeserializeObject<WeatherAPIResponseModel>(dataObjects);
 
-                            var data = JsonConvert.DeserializeObject<WeatherAPIResponseModel>(dataObjects);
-
-                            WeatherResponse = (_mapper.Map<WeatherResponseViewModel>(data));
-                            WeatherResponse.CityName = locationData.name ?? "";
-                        }
-                        else
-                        {
-                            WeatherResponse.ErrorMessage = string.Format("{0} ({1})", (int)response.StatusCode, response.ReasonPhrase);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        WeatherResponse.ErrorMessage = string.Format("ERROR : ", ex.Message);
-                    }
+                    WeatherResponse = (_mapper.Map<WeatherResponseViewModel>(data));
+                    WeatherResponse.CityName = locationData.name ?? "";
+                }
+                catch (Exception ex)
+                {
+                    WeatherResponse.ErrorMessage = string.Format("ERROR : ", ex.Message);
                 }
             }
-            else
-                WeatherResponse.ErrorMessage = "ZIP Code not valid";
         }
 
-        //To generate Exclude list except for selected One.
+        //To generate Exclude list except for selected one in request model.
         private string GetExcludeList(int i)
         {
             string excludeList = string.Empty;
@@ -171,14 +171,6 @@ namespace WeatherApplication.Helpers
             excludeList = string.Join(",", (Enum.GetNames(typeof(eRequestType)).Where(x => x != Enum.GetName(typeof(eRequestType), i))));
 
             return excludeList;
-        }
-
-        //To convert unix DateTime to Normal Date Time
-        public DateTime UnixTimeToDateTime(long unixtime)
-        {
-            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            dtDateTime = dtDateTime.AddSeconds(unixtime).ToLocalTime();
-            return dtDateTime;
         }
 
         #endregion

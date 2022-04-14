@@ -15,7 +15,7 @@
 
         <br />
         @Html.LabelFor(model => model.UOM, "Unit", new { style = "width: 150px;" })
-        @Html.DropDownListFor(model => model.UOM, new List<SelectListItem> { new SelectListItem { Value = "1", Text = " °C " }, new SelectListItem { Value = "2", Text = " °F " } }, new { style = "width: 150px;" })
+        @Html.DropDownListFor(model => model.UOM, new List<SelectListItem> { new SelectListItem { Value = "1", Text = "Metric" }, new SelectListItem { Value = "2", Text = "Imperial" } }, new { style = "width: 150px;" })
         @Html.ValidationMessageFor(model => model.UOM, null, new { @class = "text-danger" })
 
         <br />
@@ -24,7 +24,7 @@
         @Html.ValidationMessageFor(model => model.RequestType, null, new { @class = "text-danger" })
         <br />
 
-        <input type="submit" value="Todays Weather" class="btn btn-dark" />
+        <input type="submit" value="Get Weather" class="btn btn-dark" />
     </form>
 </div>
 
@@ -39,7 +39,7 @@
             {
                 <div>
                     <br /><hr />
-                    <label>City :<b> @ViewBag.Result.CityName</b> <br /></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Date : <b> @data.Date</b></label>
+                    <label>City :<b> @ViewBag.Result.CityName</b> <br /></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Date : <b> @data.Date.ToString("dd-MM-yyyy")</b></label>
                     <ul>
                         <li>
                             Temp
@@ -56,9 +56,9 @@
                         <li>
                             Wind
                             <ul>
-                                <li> Wind Speed : @data.wind_speed </li>
+                                <li> Wind Speed : @data.wind_speed (@ViewBag.Result.WindUOM)</li>
 
-                                <li> Min Temp : @data.wind_deg </li>
+                                <li> Wind Deg : @data.wind_deg°</li>
 
                             </ul>
                         </li>
@@ -70,7 +70,7 @@
         {
             <div>
                 <br /><hr />
-                <label>City :<b> @ViewBag.Result.CityName</b> <br /></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Date : <b> @ViewBag.Result.Current.Date</b></label>
+                <label>City :<b> @ViewBag.Result.CityName</b> <br /></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Date : <b> @ViewBag.Result.Current.Date.ToString("dd-MM-yyyy")</b></label>
                 <ul>
                     <li>
                         Temp
@@ -83,9 +83,9 @@
                     <li>
                         Wind
                         <ul>
-                            <li> Wind Speed : @ViewBag.Result.Current.wind_speed </li>
+                            <li> Wind Speed : @ViewBag.Result.Current.wind_speed (@ViewBag.Result.WindUOM)</li>
 
-                            <li> Min Temp : @ViewBag.Result.Current.wind_deg </li>
+                            <li> Wind Deg : @ViewBag.Result.Current.wind_deg° </li>
 
                         </ul>
                     </li>
